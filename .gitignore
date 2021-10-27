@@ -71,6 +71,7 @@ Makefile
 
 # Libraries
 *.lib
+*.libs
 *.a
 *.la
 *.lo
@@ -103,3 +104,6 @@ modules.order
 Module.symvers
 Mkfile.old
 dkms.conf
+
+configure~
+libtool
