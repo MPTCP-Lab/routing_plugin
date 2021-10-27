@@ -62,53 +62,53 @@ AX_APPEND_COMPILE_FLAGS([-Wextra -Werror -pedantic])
 # Enable compile-time defense
 # ---------------------------------------------------------------
 
-AC_ARG_ENABLE(stack-protection,
-	[AS_HELP_STRING([--disable-stack-protection],
-		[Disable compiler stack protection.
-		FORTIFY_SOURCE=2 and -fstack-protector-strong]
-	)],
-	[],
-	[enable_stack_protection=yes])
-
-AS_IF([test "x$enable_stack_protection" = "xyes"],
-	[
-	# Fortify source
-	# Enabling optimization implies _FORTIFY_SOURCE on some platforms.
-	# Explicitly redefine to _FORTIFY_SOURCE=2 to make sure we have the
-	# desired fortification level.
-	AX_APPEND_FLAG([-U_FORTIFY_SOURCE], [CPPFLAGS])
-	AX_APPEND_FLAG([-D_FORTIFY_SOURCE=2], [CPPFLAGS])
-
-	# Stack-based buffer overrun detection
-	MPTCPD_ADD_COMPILE_FLAG([-fstack-protector-strong],
-	                        [# GCC < 4.9
-	                         MPTCPD_ADD_COMPILE_FLAG([-fstack-protector])
-	                        ])
-	],[]
-	)
-
-# Format string vulnerabilities
-# -Wformat=2 implies:
-#    -Wformat -Wformat-nonliteral -Wformat-security -Wformat-y2k
-AX_APPEND_COMPILE_FLAGS([-Wformat=2])
-
-# Position Independent Execution (PIE)
-AX_APPEND_COMPILE_FLAGS([-fPIE], [EXECUTABLE_CFLAGS])
-AC_SUBST([EXECUTABLE_CFLAGS])
-
-
-# ---------------------------------------------------------------
-# Enable link-time defenses
-# ---------------------------------------------------------------
-# Stack execution protection
-AX_APPEND_LINK_FLAGS([-Wl,-z,noexecstack])
-
-# Data relocation and protection (RELRO)
-AX_APPEND_LINK_FLAGS([-Wl,-z,now -Wl,-z,relro])
-
-# Position Independent Execution
-AX_APPEND_LINK_FLAGS([-pie], [EXECUTABLE_LDFLAGS])
-AC_SUBST([EXECUTABLE_LDFLAGS])
+##AC_ARG_ENABLE(stack-protection,
+##	[AS_HELP_STRING([--disable-stack-protection],
+##		[Disable compiler stack protection.
+##		FORTIFY_SOURCE=2 and -fstack-protector-strong]
+##	)],
+##	[],
+##	[enable_stack_protection=yes])
+##
+##AS_IF([test "x$enable_stack_protection" = "xyes"],
+##	[
+##	# Fortify source
+##	# Enabling optimization implies _FORTIFY_SOURCE on some platforms.
+##	# Explicitly redefine to _FORTIFY_SOURCE=2 to make sure we have the
+##	# desired fortification level.
+##	AX_APPEND_FLAG([-U_FORTIFY_SOURCE], [CPPFLAGS])
+##	AX_APPEND_FLAG([-D_FORTIFY_SOURCE=2], [CPPFLAGS])
+##
+##	# Stack-based buffer overrun detection
+##	MPTCPD_ADD_COMPILE_FLAG([-fstack-protector-strong],
+##	                        [# GCC < 4.9
+##	                         MPTCPD_ADD_COMPILE_FLAG([-fstack-protector])
+##	                        ])
+##	],[]
+##	)
+##
+### Format string vulnerabilities
+### -Wformat=2 implies:
+###    -Wformat -Wformat-nonliteral -Wformat-security -Wformat-y2k
+##AX_APPEND_COMPILE_FLAGS([-Wformat=2])
+##
+### Position Independent Execution (PIE)
+##AX_APPEND_COMPILE_FLAGS([-fPIE], [EXECUTABLE_CFLAGS])
+##AC_SUBST([EXECUTABLE_CFLAGS])
+##
+##
+### ---------------------------------------------------------------
+### Enable link-time defenses
+### ---------------------------------------------------------------
+### Stack execution protection
+##AX_APPEND_LINK_FLAGS([-Wl,-z,noexecstack])
+##
+### Data relocation and protection (RELRO)
+##AX_APPEND_LINK_FLAGS([-Wl,-z,now -Wl,-z,relro])
+##
+### Position Independent Execution
+##AX_APPEND_LINK_FLAGS([-pie], [EXECUTABLE_LDFLAGS])
+##AC_SUBST([EXECUTABLE_LDFLAGS])
 
 # ---------------------------------------------------------------
 # Generate our build files.
