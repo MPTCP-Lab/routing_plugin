@@ -11,6 +11,6 @@ plugindir = @MPTCPD_PLUGINDIR@
 lib_LTLIBRARIES = routing.la
 
 routing_la_SOURCES  = routing.c
-routing_la_CFLAGS   = $(MPTCPD_CFLAGS)
+routing_la_CFLAGS   = $(MPTCPD_CFLAGS) -lmnl
 routing_la_LDFLAGS  = -no-undefined -module -avoid-version	
 routing_la_LIBADD   = $(MPTCPD_LIBS)
