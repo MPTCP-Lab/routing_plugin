@@ -852,7 +852,7 @@ static void clear_info(void *data)
 
 // ----------------------------------------------------------------------
 
-static void routing_new_local_address(struct mptcpd_interface const *i,
+static bool routing_new_local_address(struct mptcpd_interface const *i,
                                       struct sockaddr const *sa,
                                       struct mptcpd_pm *pm)
 {
@@ -942,9 +942,10 @@ static void routing_new_local_address(struct mptcpd_interface const *i,
 
                 l_queue_push_tail(if_info->addrs, addr);
         }
+        return true;
 }
  
-static void routing_delete_local_address(struct mptcpd_interface const *i,
+static bool routing_delete_local_address(struct mptcpd_interface const *i,
                                          struct sockaddr const *sa,
                                          struct mptcpd_pm *pm)
 {
@@ -964,6 +965,8 @@ static void routing_delete_local_address(struct mptcpd_interface const *i,
                 l_queue_remove(if_info->addrs, addr_info);
                 l_free(addr_info);
         } 
+
+        return true;
 }
 
 static struct mptcpd_plugin_ops const pm_ops = {
