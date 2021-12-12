@@ -711,14 +711,14 @@ static ssize_t dump_routes(uint8_t family)
                 return -1;
         }
 
-        ssize_t ret = mnl_socket_recvfrom(sock_conf, buf, sizeof(buf));
+        ssize_t ret = mnl_socket_recvfrom(sock_conf, buf, MNL_SOCKET_BUFFER_SIZE);
         while (ret > 0) {
                 ret = mnl_cb_run(buf, ret, seq, pid_conf, data_cb, NULL);
 
                 if (ret <= MNL_CB_STOP)
                         break;
 
-                ret = mnl_socket_recvfrom(sock_conf, buf, sizeof(buf));
+                ret = mnl_socket_recvfrom(sock_conf, buf, MNL_SOCKET_BUFFER_SIZE);
         }
 
         return ret;
@@ -969,13 +969,13 @@ static int routing_init(struct mptcpd_pm *pm)
         sock_conf = init_socket(0, &pid_conf);
 
         if (sock_conf == NULL)
-                goto err_free_structs;
+                return EXIT_FAILURE;
 
         sock_routes = init_socket(RTMGRP_IPV4_ROUTE | RTMGRP_IPV6_ROUTE,
                                   &pid_routes);
 
         if (sock_routes == NULL)
-                goto err_free_sock;
+                return EXIT_FAILURE;
 
         //verify errors
         struct l_io *io = l_io_new(mnl_socket_get_fd(sock_routes));
@@ -984,36 +984,23 @@ static int routing_init(struct mptcpd_pm *pm)
 
         if (dump_routes(AF_INET) <= 0) {
                 l_error("failed to dump ipv4 routes");
-                goto err_free_all;
+                return EXIT_FAILURE;
         }
 
         if (dump_routes(AF_INET6) <= 0) {
                 l_error("failed to dump ipv6 routes");
-                goto err_free_all;
+                return EXIT_FAILURE;
         }
 
         static char const name[] = "routing";
         if (!mptcpd_plugin_register_ops(name, &pm_ops)) {
                 l_error("Failed to initialize plugin '%s'.", name);
-                goto err_free_all;
+                return EXIT_FAILURE;
         }
         
         l_info("MPTCP routing configuration plugin started.");
         
         return EXIT_SUCCESS;
-
-err_free_all:
-        mnl_socket_close(sock_routes);
-
-err_free_sock:
-        mnl_socket_close(sock_conf);
-
-err_free_structs:
-        l_queue_destroy(info, clear_info);
-
-        l_uintset_free(ids);
-
-        return EXIT_FAILURE;
 }
 
 static void routing_exit(struct mptcpd_pm *pm)
