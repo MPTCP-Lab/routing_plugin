@@ -19,6 +19,9 @@
 #include <time.h>
 #include <stdlib.h>
 
+#define IPV4_SIZE 32
+#define IPV6_SIZE 128
+
 typedef union{
         struct in_addr ipv4;
         struct in6_addr ipv6;
@@ -120,7 +123,6 @@ static ssize_t netlink_rule(uint16_t type,
                             uint32_t table,
                             address* src_addr)
 {
-
         L_AUTO_FREE_VAR(uint8_t *, buf) =
                 l_malloc(MNL_SOCKET_BUFFER_SIZE);
 
@@ -138,15 +140,18 @@ static ssize_t netlink_rule(uint16_t type,
         fib->action = FR_ACT_TO_TBL;
 
         if (src_addr) {
-                if (family == AF_INET)
+                if (family == AF_INET) {
+                        fib->src_len = IPV4_SIZE;
                         mnl_attr_put_u32(nl,
                                          FRA_SRC,
                                          src_addr->ipv4.s_addr);
-                else
+                } else {
+                        fib->src_len = IPV6_SIZE;
                         mnl_attr_put(nl,
                                      FRA_SRC,
                                      sizeof(struct in6_addr),
                                      &src_addr->ipv6);
+                }
         }
 
         mnl_attr_put_u32(nl, FRA_TABLE, table);
@@ -265,17 +270,16 @@ static bool add_dst(struct if_rt_info *if_info,
 
 static int table_id_cb(const struct nlattr *attr, void *user_data)
 {
-        uint32_t *table_id = user_data;
-
         if (mnl_attr_type_valid(attr, RTA_MAX) < 0)
                 return MNL_CB_OK;
 
+        uint32_t *table_id = user_data;
+
         uint16_t type = mnl_attr_get_type(attr);
         if (type == FRA_TABLE ) {
-                if (mnl_attr_validate(attr, MNL_TYPE_U32) < 0) {
-                        //print error
+                if (mnl_attr_validate(attr, MNL_TYPE_U32) < 0)
                         return MNL_CB_ERROR;
-                }
+
                 *table_id = mnl_attr_get_u32(attr);
                 return MNL_CB_STOP;
         }
@@ -306,11 +310,11 @@ static uint16_t get_table_id(void)
         L_AUTO_FREE_VAR(uint8_t *, buf) =
                 l_malloc(MNL_SOCKET_BUFFER_SIZE);
 
-        uint32_t seq = time(NULL);
-
         struct nlmsghdr *nl = mnl_nlmsg_put_header(buf);
         nl->nlmsg_type = RTM_GETRULE;
         nl->nlmsg_flags = NLM_F_REQUEST | NLM_F_DUMP;
+
+        uint32_t seq = time(NULL);
         nl->nlmsg_seq = seq;
 
         struct fib_rule_hdr *frh = 
@@ -329,8 +333,10 @@ static uint16_t get_table_id(void)
                                           MNL_SOCKET_BUFFER_SIZE);
         while (ret > 0) {
                 ret = mnl_cb_run(buf, ret, seq, pid_conf, rule_cb, NULL);
+
                 if (ret <= MNL_CB_STOP)
                         break;
+
                 ret = mnl_socket_recvfrom(sock_conf,
                                           buf,
                                           MNL_SOCKET_BUFFER_SIZE);
@@ -380,8 +386,8 @@ static void conf_gw(void *data, void *user_data)
         netlink_route(RTM_NEWROUTE,
                       NLM_F_CREATE | NLM_F_EXCL,
                       addr->table_id,
-                      RT_SCOPE_LINK,
-                      RTA_DST,
+                      RT_SCOPE_UNIVERSE,
+                      RTA_GATEWAY,
                       user_data);
 
 }
@@ -399,8 +405,8 @@ static void conf_dst(void *data, void *user_data)
         netlink_route(RTM_NEWROUTE,
                       NLM_F_CREATE | NLM_F_EXCL,
                       addr->table_id,
-                      RT_SCOPE_UNIVERSE,
-                      RTA_GATEWAY,
+                      RT_SCOPE_LINK,
+                      RTA_DST,
                       user_data);
 }
 
@@ -589,7 +595,7 @@ static void rm_route(uint8_t family,
 
 static int data_attr_ipv4(struct nlattr const *attr, void *data)
 {
-        if (mnl_attr_type_valid(attr, RTA_MAX))
+        if (mnl_attr_type_valid(attr, RTA_MAX) < 0)
                 return MNL_CB_OK;
 
         struct nlattr const **tb = data;
@@ -612,7 +618,7 @@ static int data_attr_ipv4(struct nlattr const *attr, void *data)
 
 static int data_attr_ipv6(struct nlattr const *attr, void *data)
 {
-        if (mnl_attr_type_valid(attr, RTA_MAX))
+        if (mnl_attr_type_valid(attr, RTA_MAX) < 0)
                 return MNL_CB_OK;
 
         struct nlattr const **tb = data;
@@ -880,6 +886,22 @@ static struct mnl_socket *init_socket(uint32_t groups, uint32_t *pid)
 
 // ----------------------------------------------------------------------
 
+static bool routing_new_interface(struct mptcpd_interface const *i,
+                                 struct mptcpd_pm *pm)
+{
+        (void) i;
+        (void) pm;
+        return true;
+}
+
+static bool routing_delete_interface(struct mptcpd_interface const *i,
+                                     struct mptcpd_pm *pm)
+{
+        (void) i;
+        (void) pm;
+        return true;
+}
+
 static bool routing_new_local_address(struct mptcpd_interface const *i,
                                       struct sockaddr const *sa,
                                       struct mptcpd_pm *pm)
@@ -905,6 +927,7 @@ static bool routing_new_local_address(struct mptcpd_interface const *i,
 
                         struct sockaddr_in *sa_in =
                                 (struct sockaddr_in *) sa;
+
 
                         addr->addr.ipv4.s_addr = sa_in->sin_addr.s_addr;
 
@@ -954,6 +977,8 @@ static bool routing_delete_local_address(struct mptcpd_interface const *i,
 }
 
 static struct mptcpd_plugin_ops const pm_ops = {
+        .new_interface = routing_new_interface,
+        .delete_interface = routing_delete_interface,
         .new_local_address = routing_new_local_address,
         .delete_local_address = routing_delete_local_address
 };
@@ -964,12 +989,12 @@ static int routing_init(struct mptcpd_pm *pm)
 
         ids = l_uintset_new(USHRT_MAX);
 
-        info = l_queue_new();
-
         sock_conf = init_socket(0, &pid_conf);
 
         if (sock_conf == NULL)
                 return EXIT_FAILURE;
+
+        info = l_queue_new();
 
         sock_routes = init_socket(RTMGRP_IPV4_ROUTE | RTMGRP_IPV6_ROUTE,
                                   &pid_routes);
@@ -982,12 +1007,12 @@ static int routing_init(struct mptcpd_pm *pm)
         l_io_set_close_on_destroy(io, true);
         l_io_set_read_handler(io, routing_handler, NULL, NULL);
 
-        if (dump_routes(AF_INET) <= 0) {
+        if (dump_routes(AF_INET) < 0) {
                 l_error("failed to dump ipv4 routes");
                 return EXIT_FAILURE;
         }
 
-        if (dump_routes(AF_INET6) <= 0) {
+        if (dump_routes(AF_INET6) < 0) {
                 l_error("failed to dump ipv6 routes");
                 return EXIT_FAILURE;
         }
@@ -1009,9 +1034,9 @@ static void routing_exit(struct mptcpd_pm *pm)
 
         mnl_socket_close(sock_routes);
 
-        mnl_socket_close(sock_conf);
-
         l_queue_destroy(info, clear_info);
+
+        mnl_socket_close(sock_conf);
 
         l_uintset_free(ids);
 
