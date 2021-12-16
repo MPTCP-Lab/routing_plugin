@@ -1,16 +1,15 @@
-## SPDX-License-Identifier: BSD-3-Clause
-##
-## Copyright (c) 2017-2019, Intel Corporation
-
-#MPTCPD_CFLAGS = \
-#	-I/usr/local/include/mptcpd/ -I/usr/include/ell/
-#MPTCPD_LIBS = -L/usr/local/lib/mptcpd -lmptcpd #-lmnl
-#MPTCPD_PLUGINDIR = /usr/local/lib/mptcpd
+AM_CPPFLAGS = 				\
+	-I$(top_srcdir)/include		\
+	-I$(top_builddir)/include
 
 plugindir = @MPTCPD_PLUGINDIR@
-lib_LTLIBRARIES = routing.la
+
+plugin_LTLIBRARIES = routing.la
 
 routing_la_SOURCES  = routing.c
-routing_la_CFLAGS   = $(MPTCPD_CFLAGS) -lmnl
+routing_la_LIBADD   = 			      \
+	$(top_builddir)/lib/librouting_ops.la \
+	$(MPTCPD_LIBS) 			      \
+	-lmnl
+routing_la_CFLAGS   = $(MPTCPD_CFLAGS)
 routing_la_LDFLAGS  = -no-undefined -module -avoid-version	
-routing_la_LIBADD   = $(MPTCPD_LIBS)
