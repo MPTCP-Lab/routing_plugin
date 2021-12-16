@@ -2,11 +2,12 @@
 
 MPTCPD routing plugin
 
+```sh
+./bootstrap
 
-        ./bootstrap
+PKG_CONFIG_PATH=/usr/local/lib/pkgconfig ./configure
 
-        PKG_CONFIG_PATH=/usr/local/lib/pkgconfig ./configure --libdir /usr/local/lib/mptcpd
+make 
 
-        make 
-
-        sudo make install
+sudo make install
+```
