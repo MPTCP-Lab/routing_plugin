@@ -345,6 +345,8 @@ bool deconf_all(void *data, void *user_data)
         else
                 apply_ipv6_ops(addr_info, if_info, deconf_gw, deconf_dst);
 
+        delete_table(addr_info->family, addr_info->table_id);
+
         return true;
 }
 
@@ -519,7 +521,11 @@ static void routing_exit(struct mptcpd_pm *pm)
 {
         (void) pm;
 
+        destroy_handler();
+
         l_queue_destroy(info, clear_info);
+
+        destroy_mnl_ops();
 
         l_info("MPTCP routing configuration plugin exited.");
 }

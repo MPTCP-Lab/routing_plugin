@@ -77,7 +77,7 @@ static ssize_t netlink_route(uint16_t type,
         struct nlmsghdr *nl = mnl_nlmsg_put_header(buf);
 
         nl->nlmsg_type = type;
-        nl->nlmsg_flags = NLM_F_REQUEST | flags;
+        nl->nlmsg_flags = NLM_F_REQUEST | NLM_F_ACK | flags;
 
         uint32_t seq = time(NULL);
         nl->nlmsg_seq = seq;
@@ -120,7 +120,7 @@ static ssize_t netlink_rule(uint16_t type,
         struct nlmsghdr *nl = mnl_nlmsg_put_header(buf);
 
         nl->nlmsg_type = type;
-        nl->nlmsg_flags = NLM_F_REQUEST | flags;
+        nl->nlmsg_flags = NLM_F_REQUEST | NLM_F_ACK | flags;
 
         uint32_t seq = time(NULL);
         nl->nlmsg_seq = seq;
