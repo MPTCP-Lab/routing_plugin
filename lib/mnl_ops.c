@@ -7,8 +7,8 @@
 #include <ell/uintset.h>
 #include <ell/log.h>
 
-#include <routing/private/mnl_ops>
-#include <routing/private/mnl_misc>
+#include <routing/private/mnl_ops.h>
+#include <routing/private/mnl_misc.h>
 
 static struct mnl_socket *sock;
 static uint32_t pid;

@@ -11,8 +11,8 @@
 #include <assert.h>
 #include <stdlib.h>
 
-#include <routing/private/mnl_ops>
-#include <routing/private/handler>
+#include <routing/private/mnl_ops.h>
+#include <routing/private/handler.h>
 
 static struct l_queue *info;
 

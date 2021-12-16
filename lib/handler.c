@@ -3,8 +3,8 @@
 
 #include <linux/rtnetlink.h>
 
-#include <routing/private/handler>
-#include <routing/private/mnl_misc>
+#include <routing/private/handler.h>
+#include <routing/private/mnl_misc.h>
 
 static struct mnl_socket *sock;
 static uint32_t pid;
