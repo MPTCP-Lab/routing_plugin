@@ -6,7 +6,7 @@
 #include <routing/private/handler.h>
 #include <routing/private/mnl_misc.h>
 
-static struct mnl_socket *sock;
+static struct mnl_socket *sock = NULL;
 static uint32_t pid;
 
 static struct l_io *io;
@@ -43,7 +43,9 @@ bool init_handler(struct route_ops const *const ops)
 
 void destroy_handler(void)
 {
-        l_io_destroy(io);
+        if (sock != NULL) {
+                l_io_destroy(io);
 
-        mnl_socket_close(sock);
+                mnl_socket_close(sock);
+        }
 }

@@ -10,7 +10,7 @@
 #include <routing/private/mnl_ops.h>
 #include <routing/private/mnl_misc.h>
 
-static struct mnl_socket *sock;
+static struct mnl_socket *sock = NULL;
 static uint32_t pid;
 
 static struct l_uintset *ids;
@@ -29,9 +29,11 @@ bool init_mnl_ops(void)
 
 void destroy_mnl_ops(void)
 {
-        mnl_socket_close(sock);
+        if (sock != NULL) {
+                mnl_socket_close(sock);
 
-        l_uintset_free(ids);
+                l_uintset_free(ids);
+        }
 }
 
 static ssize_t nlm_comm(void *buf,
