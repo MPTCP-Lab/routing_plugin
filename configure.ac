@@ -44,6 +44,7 @@ ELL_VERSION=0.30  dnl Minimum required version of ELL.
 PKG_CHECK_MODULES([MPTCPD], [mptcpd])
 PKG_CHECK_MODULES([ELL],
                   [ell >= $ELL_VERSION])
+PKG_CHECK_MODULES([LIBMNL], [libmnl])
 
 PKG_CHECK_VAR([MPTCPD_PLUGINDIR], [mptcpd], [plugindir])
 
