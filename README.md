@@ -19,9 +19,7 @@ To build `routing` the following dependencies are required:
   plain text)
   <!--- [Doxygen](http://www.doxygen.nl/) (only needed to build-->
 - Run and build dependencies
-  - [Multipath TCP Daemon](https://github.com/intel/mptcpd); alternatively
-  the [Patched version](https://github.com/dulive/mptcpd/tree/pathed_version)
-  can be used
+  - [Patched mptcpd](https://github.com/dulive/mptcpd/tree/patched_version)
   - Linux kernel NetLink user API headers
   - [Embedded Linux Library](https://git.kernel.org/pub/scm/libs/ell/ell.git) >= v0.30
   - [Library Minimalistic NetLink](https://netfilter.org/projects/libmnl/)
