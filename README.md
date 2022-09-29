@@ -65,14 +65,9 @@ make install
 ## Running
 
 For the plugin to work properly it is necessary that the `existing` 
-`notify-flags` is active (in the case of using the patched version of 
-`mptcpd`, both `existing_ifs` and `existing_addrs` `notify-flags` are 
-necessary), _e.g._:
+`notify-flags` is active, _e.g._:
 
 ```sh
-# original mptcpd
-$ mptcpd --notify-flags=existing
-
 # mptcpd patched version
-$ mptcpd --notify-flags=existing_ifs,existing_addrs
+$ mptcpd --notify-flags=existing
 ```
